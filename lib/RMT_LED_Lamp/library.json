@@ -1,0 +1,12 @@
+{
+    "name": "RMT Led Lamp",
+    "version": "1.0_EXPERIMENTAL",
+    "description": "RMT Transmission protocol for ESP32.",
+    "authors": [
+        {
+            "name": "Pablo",
+            "email": "alarcon590@gmail.com"
+        }
+    ],
+    "license": "MIT"
+}

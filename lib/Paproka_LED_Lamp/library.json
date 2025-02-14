@@ -1,0 +1,16 @@
+{
+    "name": "Paproka LED Lamp",
+    "version": "1.0",
+    "description": "Custom ESP32 Library Based on Adafruit Neopixel",
+    "authors": [
+        {
+            "name": "Pablo",
+            "email": "alarcon590@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [
+        { "name": "symlink://../RMT_LED_Lamp" },
+        { "name": "symlink://../LED_Functions" }
+    ]
+}
