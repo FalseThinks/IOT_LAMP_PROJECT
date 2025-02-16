@@ -1,0 +1,15 @@
+{
+    "name": "MQTT Broker",
+    "version": "1.0",
+    "description": "MQTT Broker",
+    "authors": [
+        {
+            "name": "Pablo",
+            "email": "alarcon590@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "dependencies": [
+        { "name": "symlink://../Paproka_LED_Lamp" }
+    ]
+}

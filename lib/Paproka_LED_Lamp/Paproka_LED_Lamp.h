@@ -9,17 +9,16 @@ Number of LEDs: 24
 #ifndef PAPROKA_LED_LAMP_H
 #define PAPROKA_LED_LAMP_H
 
+#include "esp_log.h"
+#include "esp_err.h"
+
 #include <stdlib.h>
 #include <stdint.h>
-
 #include "sdkconfig.h"
-
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "esp_log.h"
-#include "esp_err.h"
 #include "esp32/rom/ets_sys.h"
 
 #include "esp_rmt_old.h"

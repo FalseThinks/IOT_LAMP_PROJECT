@@ -17,6 +17,7 @@ void init(uint8_t numleds, TickType_t tick_delay, uint8_t b, color_t *leds_array
 
 void spanish_flag()
 {
+    clearLeds();
     fillHEX(RED_HEX, 0, 3);
     fillHEX(YELLOW_HEX, 3, 3);
     fillHEX(RED_HEX, 6, 3);
@@ -29,6 +30,7 @@ void spanish_flag()
 
 void andalusia_flag()
 {
+    clearLeds();
     fillHEX(GREEN_HEX, 0, 3);
     fillHEX(WHITE_HEX, 3, 3);
     fillHEX(GREEN_HEX, 6, 3);
@@ -41,6 +43,7 @@ void andalusia_flag()
 
 void italian_flag()
 {
+    clearLeds();
     fillHEX(GREEN_HEX, 0, 3);
     fillHEX(WHITE_HEX, 3, 3);
     fillHEX(RED_HEX, 6, 3);
@@ -53,6 +56,7 @@ void italian_flag()
 
 void happy_face()
 {
+    clearLeds();
     fillHEX(YELLOW_HEX, 0, 3);
     fillHEX(YELLOW_HEX, 6, 3);
     fillHEX(YELLOW_HEX, 13, 7);
@@ -60,6 +64,7 @@ void happy_face()
 }
 
 void rainbow(){
+    clearLeds();
     // red, orange, yellow, green, blue, indigo, and violet
     uint32_t colors[] = {
         RED_HEX,    ORANGE_HEX, YELLOW_HEX, GREEN_HEX, BLUE_HEX, INDIGO_HEX, VIOLET_HEX
@@ -73,6 +78,7 @@ void rainbow(){
 
 void full_to_empty(uint32_t HEX)
 {
+    clearLeds();
     for (int i = 0; i < numLeds; i++)
     {
         setHEX(i, HEX);
@@ -100,6 +106,7 @@ uint8_t setRGBLane_flush(uint8_t actual, uint32_t HEX, uint8_t count) {
 
 void flush_one(uint32_t HEX, uint8_t count)
 {
+    clearLeds();
 
     if (count > numLeds-1 || count == 0)
     {
@@ -129,6 +136,7 @@ void flush_one(uint32_t HEX, uint8_t count)
 
 void flush_two(uint32_t HEX1, uint32_t HEX2, uint8_t count)
 {
+    clearLeds();
     uint8_t first = 0;
 
     if (count > (numLeds-2)/2 || count==0)
@@ -162,6 +170,7 @@ void flush_two(uint32_t HEX1, uint32_t HEX2, uint8_t count)
 }
 
 void flush_three(uint32_t HEX1, uint32_t HEX2, uint32_t HEX3, uint8_t count){
+    clearLeds();
     uint8_t first = 0;
 
     if (count > (numLeds-3)/3  || count==0)

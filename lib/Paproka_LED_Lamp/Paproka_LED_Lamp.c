@@ -1,7 +1,6 @@
 #include "Paproka_LED_Lamp.h"
 #include "LED_Default_Functions.h"
 
-
 #include "esp_timer.h"
 #include <math.h>
 
@@ -87,11 +86,7 @@ esp_err_t clearLeds()
         {
             setRGB(i, 0, 0, 0);
         }
-        if (sendData() != ESP_OK) // Ensure data is actually sent
-        {
-            ESP_LOGI(CLEAR_LEDS_FAIL, "Failed to send cleared data.");
-            return ESP_FAIL;
-        }
+
         ESP_LOGI(CLEAR_LEDS_OK, "Leds where successfully cleared.");
         return ESP_OK;
     }
