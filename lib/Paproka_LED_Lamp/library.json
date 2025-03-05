@@ -1,6 +1,6 @@
 {
     "name": "Paproka LED Lamp",
-    "version": "1.0",
+    "version": "1.0.2",
     "description": "Custom ESP32 Library Based on Adafruit Neopixel",
     "authors": [
         {
