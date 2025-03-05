@@ -10,15 +10,36 @@
 TickType_t delay = 1000; // Experimental delay
 #define NUM_LEDS 24
 
-#define PUBLIC_BROKER_URI "mqtt://broker.hivemq.com:1883"
-//#define BROKER_URI ""
-//#define AUTH_USR ""
-//#define AUTH_PWD ""
 
-#define WIFI_SSID ""
-#define WIFI_PASS "."
+//define PUBLIC_BROKER_URI "mqtt://test.mosquitto.org:1883"
+#define BROKER_URI "mqtt://10.44.25.223:1883"
+#define AUTH_USR "led_lamp"
+#define AUTH_PWD "MQTT_PAPROKA_LED_LAMP"
+
+//#define WIFI_SSID "FRITZ!Box 7590 KU"
+//#define WIFI_PASS "84033941904315170480"
+
+//#define WIFI_SSID "paproka_wifi_handy"
+//#define WIFI_PASS "brotchen123."
+
+#define WIFI_SSID "EDAG-Guest"
+#define WIFI_PASS "EDAG#Guest"
+
+#define MAX_RETRIES 5
+
+static int retry_count = 0;
+static uint32_t last_attempt = 0;
 
 static bool wifi_established = false, event_loop_initialized;
+
+void reconnect_wifi_task(void *pvParameter)
+{
+    if (wifi_established) {
+        vTaskDelete(NULL);
+    }
+    esp_wifi_connect();
+    vTaskDelete(NULL);
+}
 
 static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -37,28 +58,39 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
             break;
 
         case (WIFI_EVENT_STA_DISCONNECTED):
-            if (wifi_established)
-            {
-                wifi_established = false;
-                ESP_LOGI("WIFI - RETRY CONNECTION", "retry to connect to the AP");
-                vTaskDelay(5000 / portTICK_PERIOD_MS); //5s delay
-                esp_wifi_connect();
+            if (wifi_established) {
+                if (retry_count < MAX_RETRIES) {
+                    retry_count++;
+                    last_attempt = esp_log_timestamp();
+                    esp_wifi_disconnect();
+                    ESP_LOGI("WIFI - RETRY CONNECTION", "retrying... (%d/%d)", retry_count, MAX_RETRIES);
+                    vTaskDelay(5000 / portTICK_PERIOD_MS);
+                    xTaskCreate(reconnect_wifi_task, "reconnect_wifi", 4096, NULL, 1, NULL);
+                } else {
+                    ESP_LOGI("WIFI - GIVING UP", "Restarting ESP32");
+                    esp_restart();
+                }
             }
             break;
+        case (WIFI_EVENT_HOME_CHANNEL_CHANGE):  
+            ESP_LOGI("WIFI - RETRY CONNECTION", "retry to connect to the AP");
+            xTaskCreate(reconnect_wifi_task, "reconnect_wifi", 4096, NULL, 1, NULL);
+            break;
+            
 
         case (IP_EVENT_STA_GOT_IP):
             ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
             ESP_LOGI("Wifi connected. IP retrieve", "got ip:" IPSTR, IP2STR(&(event->ip_info.ip)));
             wifi_established = true;
-            //mqtt_init(BROKER_URI, AUTH_USR, AUTH_PWD);
-            mqtt_init(PUBLIC_BROKER_URI, "", "");
+            mqtt_init(BROKER_URI, AUTH_USR, AUTH_PWD, NUM_LEDS);
+            //mqtt_init(PUBLIC_BROKER_URI, AUTH_USR, AUTH_PWD, NUM_LEDS);
             break;
 
         default:
             ESP_LOGI("WIFI - UNKNOWN WITH BASE", "Unhandled event with ID: %li and base: %s", event_id, event_base);   
             wifi_established = false;
             ESP_LOGI("WIFI - RETRY CONNECTION", "retry to connect to the AP");
-            vTaskDelay(pdMS_TO_TICKS(500));
+            vTaskDelay(5000 / portTICK_PERIOD_MS); //5s delay
             esp_wifi_connect();
             
             break;
