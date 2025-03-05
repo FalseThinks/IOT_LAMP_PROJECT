@@ -6,12 +6,12 @@ This project is the final assignment for the "Internet of Things" lecture offere
 ### Project Goals
 The project is divided into several phases, each with its own objectives and status:
 
-- **Phase 1**: Adafruit's Neopixel library translation and implementation (for device needs). ✅  
-- **Phase 2**: RMT Protocol implementation. ✅  
-- **Phase 3**: MQTT Protocol implementation and Mosquitto Broker setup. 🟡  
-- **Phase 4**: Android application development. ❌  
-- **Phase 5**: Testing and bug fixes. ❌  
-- **Phase 6 (stretch goal)**: Update RMT protocol to the newest version (currently using a deprecated version). ❌  
+- **Phase 1**: Adafruit's Neopixel library translation and implementation (for device needs). ✓
+- **Phase 2**: RMT Protocol implementation. ✓
+- **Phase 3**: MQTT Protocol implementation and Mosquitto Broker setup. ✓
+- **Phase 4**: Android application development. ✗
+- **Phase 5**: Testing and bug fixes. ✗
+- **Phase 6 (stretch goal)**: Update RMT protocol to the newest version (currently using a deprecated version). ✗
 
 ---
 

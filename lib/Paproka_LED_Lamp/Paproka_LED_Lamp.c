@@ -141,8 +141,6 @@ esp_err_t setRGB(uint8_t led_number, uint8_t r, uint8_t g, uint8_t b)
     return setColor(led_number, HEXtoRGB(HEX));
 }
 
-// esp_err_t setRGB_self_brightness(); -> Tengo que pensar como hacerlo xq se puede rallar la ESP, checkeando el valor q tiene o algo asi idk.
-
 esp_err_t setHEX(uint8_t led_number, uint32_t HEX)
 {
     if (led_number >= numLeds)
@@ -352,4 +350,8 @@ void setFlushAndIntermitent(){
         }
     }
     return; 
+}
+
+color_t getLedColor(int index){
+    return leds[index];
 }

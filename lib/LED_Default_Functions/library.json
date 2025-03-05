@@ -1,6 +1,6 @@
 {
     "name": "LED Functions",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "Custom LED functions that implements Paproka LED Lamp library.",
     "authors": [
         {

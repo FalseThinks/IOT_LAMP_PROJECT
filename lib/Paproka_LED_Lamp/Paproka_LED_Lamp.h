@@ -220,4 +220,24 @@ hsl_t RGBtoHSL(uint8_t r, uint8_t g, uint8_t b);
  */
 color_t HSLtoRGB(hsl_t HSL);
 
+/**
+ * @brief Sets single brightness attribute for a led. 
+ * Must specify original color, and then bright will be changed.
+ * @param r Red value (0-255).
+ * @param g Green value (0-255).
+ * @param b Blue value (0-255).
+ * @param bright Bright value (0-255).
+ * @return Color_t structure of given modification.
+ * @author paproka
+ */
+color_t setBrightnessSingleRGB(uint8_t r, uint8_t g, uint8_t b, uint8_t bright);
+
+/**
+ * @brief Get actual led color.
+ * @param index Led number.
+ * @return Color of specified LED.
+ * @author paproka
+ */
+color_t getLedColor(int index);
+
 #endif

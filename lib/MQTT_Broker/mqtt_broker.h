@@ -12,7 +12,7 @@ typedef enum
 typedef struct
 {
     uint32_t hex_color;
-    uint8_t brightness;
+    int brightness;
 } led_status_json_t;
 
 #define TOPIC_BASE_URI_NO_WILDCARD "topic/lamp/"
@@ -20,18 +20,18 @@ typedef struct
 #define TOPIC_BASE_URI "topic/lamp/#"
 
 //-- DEFAULT FUNCTIONS
-
-// Example: lamp/default_functions/ + flush/flush_one/color=HEX
+// Example: lamp/default_functions/ + flags/spanish_flag/
 #define DEFAULT_FUNCTION "default_functions/"
+
 #define SPANISH_FLAG "flags/spanish_flag"
 #define ANDALUSIAN_FLAG "flags/andalusian_flag"
 #define ITALIAN_FLAG "flags/italian_flag"
 #define HAPPY_FACE "happy_face"
 #define RAINBOW "rainbow"
 #define FULL_TO_EMPTY "full_to_empty/color=HEX" // HEX Format: #RRGGBB
+#define CLEAR "clear"
 
 //-- END OF DEFAULT FUNCTIONS
-
 #define JSON_FUNCTION "json_function/"
 
 #define SET_COLOR "set_color/"                         // LED_NUMBER + HEX

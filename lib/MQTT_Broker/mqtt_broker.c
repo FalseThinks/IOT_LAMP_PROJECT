@@ -15,38 +15,57 @@ static led_status_json_t *leds_json;
 
 static bool isIntermitent = false;
 static bool isFlush = false;
-static uint8_t global_brightness = -1;
 
-void init_led_json() {
-    leds_json = malloc(sizeof(led_status_json_t)*num_leds);
-    for (int i = 0; i < num_leds; i++) {
+static int global_brightness = -1;
+
+void clearLeds_broker()
+{
+    clearLeds();
+    for (uint8_t i = 0; i < num_leds; i++)
+    {
+        color_t RGB = getLedColor(i);
+        leds_json[i].hex_color = RGBtoHEX(RGB.r, RGB.g, RGB.b);   
+    }
+}
+
+void init_led_json()
+{
+    leds_json = malloc(sizeof(led_status_json_t) * num_leds);
+    for (int i = 0; i < num_leds; i++)
+    {
         leds_json[i].hex_color = -1;   // Default not set
-        leds_json[i].brightness = 255;   // Default to full brightness
+        leds_json[i].brightness = 255; // Default to full brightness
     }
 }
 
 void get_data_json(const char *json_string)
 {
     cJSON *root = cJSON_Parse(json_string);
-    if (!root) return;
+    if (!root)
+        return;
 
     cJSON *led_numbers = cJSON_GetObjectItem(root, "leds");
-    if (led_numbers) {
-        for (int i = 0; i < num_leds; i++) {
-            char index_str[12]; //3????
+    if (led_numbers)
+    {
+        for (int i = 0; i < num_leds; i++)
+        {
+            char index_str[12];
             snprintf(index_str, sizeof(index_str), "%d", i);
 
             cJSON *led = cJSON_GetObjectItem(led_numbers, index_str);
-            if (led) {
+            if (led)
+            {
                 // Update color
                 cJSON *color = cJSON_GetObjectItem(led, "c");
-                if (color && cJSON_IsString(color) && color->valuestring[0] == '#') {
+                if (color && cJSON_IsString(color) && color->valuestring[0] == '#')
+                {
                     leds_json[i].hex_color = (uint32_t)strtol(color->valuestring + 1, NULL, 16);
                 }
 
                 // Update brightness
                 cJSON *brightness = cJSON_GetObjectItem(led, "b");
-                if (brightness && cJSON_IsString(brightness)) {
+                if (brightness && cJSON_IsString(brightness))
+                {
                     leds_json[i].brightness = (uint8_t)atoi(brightness->valuestring);
                 }
             }
@@ -101,15 +120,23 @@ void restartTask(void *pvParameters)
 
 void loopTask(void *pvParameters)
 {
-    //TBD
+    ESP_LOGI(TAG,"PERFORMING LOOP TASK");
+    if (isIntermitent){
+        setIntermitent();
+    }else if(isFlush){
+        setFlush();
+    }else if (isIntermitent && isFlush){
+        setFlushAndIntermitent();
+    }
 }
 
 void createNewTask(const char *const TASK_NAME, esp_mqtt_client_handle_t param, TaskHandle_t *xHandle, task_type_t taskType)
 {
-    //Initialization
+    // Initialization
     BaseType_t xReturned = pdFALSE;
 
-    if (*xHandle != NULL) {
+    if (*xHandle != NULL)
+    {
         printf("Task already exists. Deleting it...\n");
         vTaskDelete(*xHandle);
         *xHandle = NULL;
@@ -121,7 +148,7 @@ void createNewTask(const char *const TASK_NAME, esp_mqtt_client_handle_t param, 
     {
         // Create the task, storing the handle.
         xReturned = xTaskCreate(
-            restartTask,              // Function that implements the task.
+            restartTask,       // Function that implements the task.
             TASK_NAME,         // Text name for the task.
             DEFAULT_STACKSIZE, // Stack size in words, not bytes.
             (void *)param,     // Parameter passed into the task.
@@ -134,12 +161,12 @@ void createNewTask(const char *const TASK_NAME, esp_mqtt_client_handle_t param, 
     {
         xReturned = xTaskCreate(
             loopTask,
-            TASK_NAME,         
-            DEFAULT_STACKSIZE, 
-            (void *)param,     
-            DEFAULT_PRIORITY,  
-            xHandle);          
-                               
+            TASK_NAME,
+            DEFAULT_STACKSIZE,
+            (void *)param,
+            DEFAULT_PRIORITY,
+            xHandle);
+
         break;
     }
     }
@@ -158,49 +185,81 @@ void createNewTask(const char *const TASK_NAME, esp_mqtt_client_handle_t param, 
 
 void apply_sent_data()
 {
-    for (int i=0; i<num_leds; i++)
+    if (global_brightness != -1)
+        setBrightness(global_brightness);
+    for (int i = 0; i < num_leds; i++)
     {
-        if(leds_json[i].hex_color!=-1)
-            setHEX(i,leds_json[i].hex_color);
+        if (leds_json[i].brightness != -1)
+        {
+            color_t prevChange = {0, 0, 0};
+            if (leds_json[i].hex_color != -1)
+            { // Means than a new color is set
+                prevChange = HEXtoRGB(leds_json[i].hex_color);
+            }
+            else
+            { // Means than color remains
+                prevChange = getLedColor(i);
+            }
+            color_t RGB = setBrightnessSingleRGB(prevChange.r, prevChange.g, prevChange.b, leds_json[i].brightness);
+            setRGB(i, RGB.r, RGB.g, RGB.b);
+        }
+        else if (leds_json[i].hex_color != -1 && leds_json[i].brightness == -1)
+            setHEX(i, leds_json[i].hex_color);
     }
+    if (!isIntermitent || !isFlush){
+        if (xHandle!=NULL){
+            vTaskDelete(xHandle);
+            xHandle=NULL;
+            vTaskDelay(DEFAULT_TICK_DELAY);
+        }
+            
+    }
+    if (isIntermitent || isFlush)
+        createNewTask((isIntermitent&&isFlush)?"INTERMITENT_AND_FLUSH":
+            ((isIntermitent)?"INTERMITENT":"FLUSH")
+            ,NULL, &xHandle, LOOP_TASK);
 }
 
 static void handle_topic(const char *full_topic, const char *subtopic,
                          const char *data, esp_mqtt_client_handle_t client)
 {
-    //ESP_LOGI(TAG, "Performing action for subtopic: %s, data: %s", subtopic, data);
-    
+    // ESP_LOGI(TAG, "Performing action for subtopic: %s, data: %s", subtopic, data);
+
     vTaskDelay(DEFAULT_TICK_DELAY);
     if (strcmp(subtopic, DEFAULT_FUNCTION) == 0)
     {
-        
-        if (strcmp(data, SPANISH_FLAG) == 0)
+        if (strcmp(data, CLEAR) == 0)
         {
-            clearLeds();
+            clearLeds_broker();
+            sendData();
+        }
+        else if (strcmp(data, SPANISH_FLAG) == 0)
+        {
+            clearLeds_broker();
             sendData();
             spanish_flag();
         }
-        else if (strcmp(data, ITALIAN_FLAG)==0)
+        else if (strcmp(data, ITALIAN_FLAG) == 0)
         {
-            clearLeds();
+            clearLeds_broker();
             sendData();
             italian_flag();
         }
         else if (strcmp(data, ANDALUSIAN_FLAG) == 0)
         {
-            clearLeds();
+            clearLeds_broker();
             sendData();
             andalusia_flag();
         }
         else if (strcmp(data, HAPPY_FACE) == 0)
         {
-            clearLeds();
+            clearLeds_broker();
             sendData();
             happy_face();
         }
         else if (strcmp(data, RAINBOW) == 0)
         {
-            clearLeds();
+            clearLeds_broker();
             sendData();
             rainbow();
         }
@@ -210,12 +269,11 @@ static void handle_topic(const char *full_topic, const char *subtopic,
 
             if (strncmp(data, base_topic_full_to_empty, strlen(base_topic_full_to_empty)) == 0)
             {
-                const char *HEX_full_to_empty_char = data + strlen(base_topic_full_to_empty);     
-                const char* hex_without_hash = HEX_full_to_empty_char + 1;
-                printf("PRE: %s",hex_without_hash);
+                const char *HEX_full_to_empty_char = data + strlen(base_topic_full_to_empty);
+                const char *hex_without_hash = HEX_full_to_empty_char + 1;
+                printf("PRE: %s", hex_without_hash);
                 uint32_t HEX_value = (uint32_t)strtol(hex_without_hash, NULL, 16);
-                printf("POST: %li",HEX_value);
-                //createNewTask("FULL_TO_EMPTY_TASK", )
+                printf("POST: %li", HEX_value);
                 full_to_empty(HEX_value);
             }
             else
@@ -226,12 +284,13 @@ static void handle_topic(const char *full_topic, const char *subtopic,
         }
     }
     else if (strcmp(subtopic, JSON_FUNCTION) == 0)
-    { 
+    {
         ESP_LOGI(TAG, "Performing JSON action");
         get_data_json(data);
         apply_sent_data();
         sendData();
-    }else
+    }
+    else
         ESP_LOGE(TAG, "NOT EXPECTED FORMAT");
 }
 
@@ -253,7 +312,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_DISCONNECTED:
         ESP_LOGW(TAG, "MQTT_EVENT_DISCONNECTED");
         createNewTask("RESTART_MQTT", client, &xHandle, RESTART_TASK);
-        vTaskDelay(DEFAULT_TICK_DELAY);  
+        vTaskDelay(DEFAULT_TICK_DELAY);
         break;
 
     case MQTT_EVENT_ERROR:
@@ -290,14 +349,16 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         char *data;
         size_t buffer = 1;
         // Extract the data
-        if (strcmp(subtopic, JSON_FUNCTION)==0){
-            buffer = 1000;
+        if (strcmp(subtopic, JSON_FUNCTION) == 0)
+        {
+            buffer = 1500;
             data = malloc(buffer);
         }
-        else{
+        else
+        {
             buffer = 250;
             data = malloc(buffer);
-        }     
+        }
 
         snprintf(data, buffer, "%.*s", event->data_len, event->data);
         ESP_LOGI(TAG, "Data: %s", data);
