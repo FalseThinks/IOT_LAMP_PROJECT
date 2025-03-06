@@ -15,6 +15,10 @@ static led_status_json_t *leds_json;
 
 static bool isIntermitent = false;
 static bool isFlush = false;
+static bool hasFill = false;
+
+static fill_data_t *fill_array;
+static uint8_t fill_array_size;
 
 static int global_brightness = -1;
 
@@ -71,6 +75,56 @@ void get_data_json(const char *json_string)
             }
         }
     }
+    cJSON *bool_has_fill = cJSON_GetObjectItem(root,"has_fill");
+    hasFill = cJSON_IsTrue(bool_has_fill);
+    if (hasFill)
+    {
+        cJSON *fills = cJSON_GetObjectItem(root, "fills");
+        
+
+        if (fills && cJSON_IsObject(fills))
+        {
+            int fill_index=0;
+            cJSON *fill_item = NULL;
+            fill_array = malloc(sizeof(fill_array)*cJSON_GetArraySize(fills));
+
+            cJSON_ArrayForEach(fill_item, fills)
+            {
+                if (cJSON_IsObject(fill_item))
+                {
+                    cJSON *color = cJSON_GetObjectItem(fill_item, "c");
+                    cJSON *start = cJSON_GetObjectItem(fill_item, "start");
+                    cJSON *count = cJSON_GetObjectItem(fill_item, "count");
+                    cJSON *brightness = cJSON_GetObjectItem(fill_item, "brightness");
+
+                    if (color && cJSON_IsString(color) && color->valuestring[0] == '#')
+                    {
+                        fill_array[fill_index].hex_color = strtol(color->valuestring + 1, NULL, 16);
+                    }
+
+                    if (start && cJSON_IsString(start))
+                    {
+                        fill_array[fill_index].start = atoi(start->valuestring);
+                    }
+
+                    if (count && cJSON_IsString(count))
+                    {
+                        fill_array[fill_index].count = atoi(count->valuestring);
+                    }
+
+                    if (brightness && cJSON_IsString(brightness))
+                    {
+                        fill_array[fill_index].brightness = atoi(brightness->valuestring);
+                    }
+                    fill_index++;
+                }
+            }
+            fill_array_size = (uint8_t)fill_index;
+        }
+    }
+    else
+        fill_array = NULL;
+
     cJSON *bool_is_flush = cJSON_GetObjectItem(root, "is_flush");
     isFlush = cJSON_IsTrue(bool_is_flush);
     cJSON *bool_is_intermitent = cJSON_GetObjectItem(root, "is_intermitent");
@@ -206,6 +260,21 @@ void apply_sent_data()
         else if (leds_json[i].hex_color != -1 && leds_json[i].brightness == -1)
             setHEX(i, leds_json[i].hex_color);
     }
+
+    if (fill_array!=NULL)
+    {
+        uint8_t index = 0;
+        while (index!=fill_array_size){
+            fill_data_t fill = fill_array[index];
+            uint32_t HEX_pre_bright = fill.hex_color;
+            color_t RGB_pre_bright = HEXtoRGB(HEX_pre_bright);
+            color_t RGB_post_bright = setBrightnessSingleRGB(RGB_pre_bright.r, RGB_pre_bright.g, RGB_pre_bright.b, fill.brightness);
+            uint32_t HEX_post_bright = RGBtoHEX(RGB_post_bright.r, RGB_post_bright.g, RGB_post_bright.b);
+            fillHEX(HEX_post_bright, fill.start, fill.count);
+            index++;
+        }
+    }
+
     if (!isIntermitent || !isFlush){
         if (xHandle!=NULL){
             vTaskDelete(xHandle);

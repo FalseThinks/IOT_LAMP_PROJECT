@@ -15,6 +15,14 @@ typedef struct
     int brightness;
 } led_status_json_t;
 
+typedef struct
+{
+    int hex_color;
+    int start;
+    int count;
+    int brightness;
+} fill_data_t;
+
 #define TOPIC_BASE_URI_NO_WILDCARD "topic/lamp/"
 // # is used as wildcard for receiving new messages
 #define TOPIC_BASE_URI "topic/lamp/#"
@@ -52,7 +60,7 @@ void mqtt_init(char *BROKER_URI, char *AUTH_USR, char *AUTH_PWD, int numLeds);
 // JSON File structure detailed below
 /*
     {
-        "leds":
+        "leds": <- is programmed to must have all indexes, from 0 to 23
         {
             "0":
             {
@@ -71,6 +79,10 @@ void mqtt_init(char *BROKER_URI, char *AUTH_USR, char *AUTH_PWD, int numLeds);
                 "b" = "-1"
             }
         }
+        "has_fill" = true/false,
+        "fills": {
+            "0": { "c": "#FFFFFF", "start": "0", "count": "23", "brightness": "255"}
+        },
         "is_flush" = true/false,
         "is_intermitent" = true/false,
         "global_b" = "255"
