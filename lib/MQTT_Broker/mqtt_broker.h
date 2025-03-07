@@ -79,7 +79,7 @@ void mqtt_init(char *BROKER_URI, char *AUTH_USR, char *AUTH_PWD, int numLeds);
                 "b" = "-1"
             }
         }
-        "has_fill" = true/false,
+        "has_fill" : true/false,
         "fills": {
             "0": { "c": "#FFFFFF", "start": "0", "count": "23", "brightness": "255"}
         },

@@ -35,9 +35,13 @@ void clearLeds_broker()
 void init_led_json()
 {
     leds_json = malloc(sizeof(led_status_json_t) * num_leds);
+    if (!leds_json) {
+        ESP_LOGE(TAG, "Memory allocation failed for leds_json");
+        return;
+    }
     for (int i = 0; i < num_leds; i++)
     {
-        leds_json[i].hex_color = -1;   // Default not set
+        leds_json[i].hex_color = 0x000000;   // Default not set
         leds_json[i].brightness = 255; // Default to full brightness
     }
 }
@@ -86,7 +90,12 @@ void get_data_json(const char *json_string)
         {
             int fill_index=0;
             cJSON *fill_item = NULL;
-            fill_array = malloc(sizeof(fill_array)*cJSON_GetArraySize(fills));
+            fill_array = malloc(sizeof(fill_data_t)*cJSON_GetArraySize(fills));
+            if (!fill_array) {
+                ESP_LOGE(TAG, "Memory allocation failed for fill_array");
+                return;
+            }
+            
 
             cJSON_ArrayForEach(fill_item, fills)
             {
@@ -239,8 +248,8 @@ void createNewTask(const char *const TASK_NAME, esp_mqtt_client_handle_t param, 
 
 void apply_sent_data()
 {
-    if (global_brightness != -1)
-        setBrightness(global_brightness);
+    if (global_brightness >= 0)
+        setBrightness((uint8_t)global_brightness);
     for (int i = 0; i < num_leds; i++)
     {
         if (leds_json[i].brightness != -1)
@@ -267,13 +276,22 @@ void apply_sent_data()
         while (index!=fill_array_size){
             fill_data_t fill = fill_array[index];
             uint32_t HEX_pre_bright = fill.hex_color;
-            color_t RGB_pre_bright = HEXtoRGB(HEX_pre_bright);
-            color_t RGB_post_bright = setBrightnessSingleRGB(RGB_pre_bright.r, RGB_pre_bright.g, RGB_pre_bright.b, fill.brightness);
+            color_t RGB_pre_bright = HEXtoRGB((uint32_t)HEX_pre_bright);
+            color_t RGB_post_bright = {0, 0, 0};
+            
+            //if (fill.brightness<=0 && global_brightness>=0)
+                //RGB_post_bright = setBrightnessSingleRGB(RGB_pre_bright.r, RGB_pre_bright.g, RGB_pre_bright.b, (uint8_t)global_brightness);
+            
+            RGB_post_bright = setBrightnessSingleRGB(RGB_pre_bright.r, RGB_pre_bright.g, RGB_pre_bright.b, (uint8_t)fill.brightness);   
+
             uint32_t HEX_post_bright = RGBtoHEX(RGB_post_bright.r, RGB_post_bright.g, RGB_post_bright.b);
             fillHEX(HEX_post_bright, fill.start, fill.count);
             index++;
         }
+        free(fill_array);
+        fill_array = NULL;
     }
+    
 
     if (!isIntermitent || !isFlush){
         if (xHandle!=NULL){
@@ -433,6 +451,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "Data: %s", data);
 
         handle_topic(full_topic, subtopic, data, client);
+        free(data);
         break;
     case MQTT_EVENT_SUBSCRIBED:
         ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED");

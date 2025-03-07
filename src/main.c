@@ -12,18 +12,18 @@ TickType_t delay = 1000; // Experimental delay
 
 // define PUBLIC_BROKER_URI "mqtt://test.mosquitto.org:1883"
 // define PUBLIC_BROKER_URI "mqtt://test.mosquitto.org:1883"
-#define BROKER_URI "mqtt://192.168.196.36:1883"
+#define BROKER_URI "mqtt://10.44.25.223:1883"
 #define AUTH_USR "led_lamp"
 #define AUTH_PWD "MQTT_PAPROKA_LED_LAMP"
 
 // #define WIFI_SSID "FRITZ!Box 7590 KU"
 // #define WIFI_PASS "84033941904315170480"
 
-#define WIFI_SSID "paproka_wifi_handy"
-#define WIFI_PASS "brotchen123."
+//#define WIFI_SSID "paproka_wifi_handy"
+//#define WIFI_PASS "brotchen123."
 
-// #define WIFI_SSID "EDAG-Guest"
-// #define WIFI_PASS "EDAG#Guest"
+#define WIFI_SSID "EDAG-Guest"
+#define WIFI_PASS "EDAG#Guest"
 
 #define MAX_RETRIES 5
 
