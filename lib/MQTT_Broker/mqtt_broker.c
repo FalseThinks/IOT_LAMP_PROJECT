@@ -358,9 +358,7 @@ static void handle_topic(const char *full_topic, const char *subtopic,
             {
                 const char *HEX_full_to_empty_char = data + strlen(base_topic_full_to_empty);
                 const char *hex_without_hash = HEX_full_to_empty_char + 1;
-                printf("PRE: %s", hex_without_hash);
                 uint32_t HEX_value = (uint32_t)strtol(hex_without_hash, NULL, 16);
-                printf("POST: %li", HEX_value);
                 full_to_empty(HEX_value);
             }
             else
