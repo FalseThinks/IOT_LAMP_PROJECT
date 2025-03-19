@@ -113,7 +113,6 @@ esp_err_t setColor(uint8_t led_number, color_t RGB)
     if (leds != NULL)
     {
         leds[led_number] = RGB;
-        // ESP_LOGI(SET_COLOR_OK, "Color was succesfully set.");
         return ESP_OK;
     }
 
@@ -137,7 +136,6 @@ esp_err_t setRGB(uint8_t led_number, uint8_t r, uint8_t g, uint8_t b)
 
     // GRB!
     uint32_t HEX = RGBtoHEX(r, g, b);
-    // printf("HEX_VALUE = %li", HEX);
     return setColor(led_number, HEXtoRGB(HEX));
 }
 
