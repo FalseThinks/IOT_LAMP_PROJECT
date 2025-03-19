@@ -34,14 +34,8 @@ To replicate this project, you will need the following:
 ---
 
 ##### main.c
-- main.c needs changes in function of your needs:
+main.c needs changes in function of your needs: BROKER_URI, AUTH_USR, AUTH_PWD, WIFI_SSID, WIFI_PASS.
 
-#define BROKER_URI "mqtt://ip:port"
-#define AUTH_USR "" -> If needed
-#define AUTH_PWD "" -> If needed
-
-#define WIFI_SSID "example_wifi"
-#define WIFI_PASS "example_password" 
 
 Also, in main.c is managed wifi connection, by handling events. If a wifi connection is succesfully done (triggering IP_EVENT_STA_GOT_IP), then MQTT creation starts.
 
