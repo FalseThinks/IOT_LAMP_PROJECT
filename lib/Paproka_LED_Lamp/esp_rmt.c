@@ -1,4 +1,6 @@
 /*
+  THIS FILE DOES NOT WORK.
+  
   Based on Adafruit Neopixel ESP implementation.
   Updated on my own to match current versions, and device.
 
