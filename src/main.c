@@ -12,12 +12,11 @@ TickType_t delay = 1000; // Experimental delay
 
 // define PUBLIC_BROKER_URI "mqtt://test.mosquitto.org:1883"
 
-#define BROKER_URI "ws://192.168.178.91:9001"
-#define AUTH_USR "led_lamp"
-#define AUTH_PWD "MQTT_PAPROKA_LED_LAMP"
-
-#define WIFI_SSID "paproka_lin"
-#define WIFI_PASS "brotchen123."
+#define BROKER_URI "ws://IP:PORT"
+#define AUTH_USR ""
+#define AUTH_PWD ""
+#define WIFI_SSID ""
+#define WIFI_PASS ""
 
 #define MAX_RETRIES 5
 
