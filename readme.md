@@ -9,9 +9,8 @@ The project is divided into several phases, each with its own objectives and sta
 - **Phase 1**: Adafruit's Neopixel library translation and implementation (for device needs). ✓
 - **Phase 2**: RMT Protocol implementation. ✓
 - **Phase 3**: MQTT Protocol implementation and Mosquitto Broker setup. ✓
-- **Phase 4**: Android application development. ✗
-- **Phase 5**: Testing and bug fixes. ✗
-- **Phase 6 (stretch goal)**: Update RMT protocol to the newest version (currently using a deprecated version). ✗
+- **Phase 4**: Android application development. ✓
+- **Phase 5**: Testing and bug fixes. ✓
 
 ---
 
@@ -30,12 +29,62 @@ To replicate this project, you will need the following:
 ---
 
 ### Setup Instructions
-TBD later.
+#### 1. ESP32 Project
+- An example of .json document structure is given in src folder.
+---
+
+##### main.c
+- main.c needs changes in function of your needs:
+
+#define BROKER_URI "mqtt://ip:port"
+#define AUTH_USR "" -> If needed
+#define AUTH_PWD "" -> If needed
+
+#define WIFI_SSID "example_wifi"
+#define WIFI_PASS "example_password" 
+
+Also, in main.c is managed wifi connection, by handling events. If a wifi connection is succesfully done (triggering IP_EVENT_STA_GOT_IP), then MQTT creation starts.
+
+##### Libraries
+
+There are several libraries, for organizing the code and implementing functions.
+
+###### LED_DEFAULT_FUNCTIONS
+Implements functions on advance for LEDs setup. For example, set flags, rainbow, happy face, ...
+
+###### Paproka_LED_Lamp (There is an approach of modern RMT too in another file here, but is not usable/stable. Please use deprecated one)
+Implements functions for controlling specified part of the lamp. This is the essential one, because manipulates everything related on what are we going to set on the lamp.
+See .h for further information.
+
+###### RMT_LED_Lamp
+Implements deprecated RMT protocol for communicating with the lamp, and sending the information.
+
+###### MQTT_Broker
+Implements a client communication with broker. Base route starts with "topic/lamp/", and with usage of the wildcard #, we can add several things to this.
+For example, we can:
+topic/lamp/default_functions/ + message (check .h)
+topic/lamp/json_function/ + file.json (or cat file.json as message). (Structure is also detailed in .h)
 
 ---
 
-### Repository Structure
-TBD later.
+#### 2. Mosquitto broker
+A mosquitto broker has been created for developing this project and for testing purposes.
+For React Native's app, I also had to set up Websockets allowance.
+
+Following this guide:
+https://docs.vultr.com/install-mosquitto-mqtt-broker-on-ubuntu-20-04-server
+
+And also setting up configuration for enabling WebSockets (got anonymous for time save. It has been tested with security) in mosquitto.conf file:
+
+allow_anonymous true
+#password_file /etc/mosquitto/password
+listener 9001 0.0.0.0
+protocol websockets
+
+---
+
+#### 3. Android App
+Can be found here: https://github.com/FalseThinks/paproka-lamp-controller-mqtt.git
 
 ---
 
